@@ -1,118 +1,145 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useEffect, useState} from 'react';
+import {Platform} from 'react-native';
+import {View, TextInput, TouchableOpacity, StyleSheet, PermissionsAndroid} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Voice from '@react-native-voice/voice';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  useEffect (() => {
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = (error) => console.log ('onSpeech Error', error);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
+    const androidPermissionChecking = async () => {
+      if(Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
           {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+            title: 'Microphone Permission',
+            message: 'This app needs access to your microphone to recognize speech',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative:'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
 
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+        if (granted === PermissionsAndroid.RESULTS.GRANTED){
+          console.log('Microphone permission granted');
+        } else {
+          console.log('Microphone permission denied');
+        }
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+        const getService = await Voice.getSpeechRecognitionServices();
+        console.log('getService for audio', getService);
+      }
+    };
+
+    androidPermissionChecking(); 
+
+    return () => {
+      Voice.destroy().then (Voice.removeAllListeners);
+    }
+  }, []);
+
+  const onSpeechStart = () => {
+    console.log('Recording started');
+  }
+
+  const onSpeechEnd = () => {
+    setIsListening(false);
+    console.log('Recording ended');
+  }
+
+  const onSpeechResults = (event) => {
+    console.log ('OnSpeechResults', event);
+    const text = event.value[0];
+    setSearchText(text)
   };
 
+  const startListening = async () => {
+    try{
+      await Voice.start('en-US');
+      setIsListening(true);
+    } catch (error) {
+      console.log('Start Listening Error', error);
+    }
+  };
+
+  const stopListening = async () => {
+    try{ 
+      await Voice.stop();
+      setIsListening(false);
+    } catch (error) {
+      console.log('Stop Listening Error', error); 
+    }
+  }
+
+  const styles = StyleSheet.create ({
+    container:{
+      flexDirection:'row',
+      backgroundColor:'#f1f1f1',
+      borderRadius:30,
+      alignItems:'center',
+      paddingHorizontal:15,
+      margin:20,
+      elevation:3,
+    },
+    input:{
+      flex:1,
+      height:45,
+      fontSize:16,
+      color:'#000',
+    },
+    iconContainer: {
+      marginLeft:10,
+    },
+    dotsContainer:{
+      flexDirection:'row',
+      justifyContent:'center',
+      alignItems:'center',
+    },
+    dot:{
+      width:6,
+      height:6,
+      borderRadius:3,
+      backgroundColor:'#333',
+      marginHorizontal:2,
+    }
+  })
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+    <View style={styles.container}>
+      <TextInput
+       placeholder='Search here...'
+       value={searchText}
+       onChangeText={setSearchText}
+       style={styles.input}
+       placeholderTextColor='#999'
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+
+      <TouchableOpacity
+       onPress = {() => {
+        isListening ? stopListening() : startListening()
+       }}
+       style={styles.iconContainer}
+      >
+        {isListening ? (
+          <View style = {styles.dotsContainer}>
+            <View style={styles.dot}/>
+            <View style={styles.dot}/>
+            <View style={styles.dot}/>
+          </View>
+        ):(
+          <Icon name='microphone' size={24} color='#333'/>
+        )}
+      </TouchableOpacity>
+      
+    </View>
+  )
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+export default App
