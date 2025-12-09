@@ -75,7 +75,7 @@ const AIVoiceAssistantScreen = () => {
       setLoading(true);
       setAIResponse("");
 
-      const res = await axios.post("http://172.16.6.251:5000/ask-ai", {
+      const res = await axios.post("https://netra-server-nwf6.onrender.com/ask-ai", {
         userQuery: recordedText,
       });
 

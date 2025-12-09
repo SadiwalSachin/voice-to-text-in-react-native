@@ -20,7 +20,7 @@ export default function SendPDFScreen() {
   const [selectedPDF, setSelectedPDF] = useState(null);
   const [extractedText, setExtractedText] = useState("");
 
-  const SERVER = "http://172.16.6.251:5000";
+  const SERVER = "https://netra-server-nwf6.onrender.com";
 
   // PICK PDF
 const choosePDF = async () => {
