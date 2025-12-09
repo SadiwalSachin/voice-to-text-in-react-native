@@ -77,6 +77,7 @@ import {BluetoothProvider} from './context/BluetoothContext';
 import SendVoiceDataScreen from './screens/SendVoiceData';
 import TeachersModuleScreen from './screens/TeachersModulesScreen';
 import SendPDFScreen from './screens/SendPDFScreen';
+import AIVoiceAssistantScreen from './screens/AiVoiceAssistantScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -131,6 +132,12 @@ const App = () => {
           name="TeachersModule"
           component={TeachersModuleScreen}
           options={{ title: "Teacher's Module" }}
+        />
+
+        <Stack.Screen
+          name="AIVoiceAssistantScreen"
+          component={AIVoiceAssistantScreen}
+          options={{ title: "AI Assistant" }}
         />
         </Stack.Navigator>
       </NavigationContainer>

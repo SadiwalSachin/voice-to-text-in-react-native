@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { BluetoothContext } from "../context/BluetoothContext";
+import BluetoothSerial from 'react-native-bluetooth-serial-next';
+
 
 const alphabets = [
   { letter: "A", braille: "⠁" },
@@ -43,7 +45,7 @@ export default function TeachersModuleScreen() {
         }
         if (!textMessage.trim()) return;
   
-        await connectedDevice.write(textMessage + "\n");
+        await BluetoothSerial.write(textMessage + '\n');
   
         console.log("Sent:", textMessage);
   

@@ -55,6 +55,14 @@ export default function HomeScreen() {
         <MaterialIcons name="school" size={22} color="#fff" />
         <Text style={styles.btnText}>Teacher’s Module</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate('AIVoiceAssistantScreen')}
+        style={styles.button}
+      >
+        <MaterialIcons name="school" size={22} color="#fff" />
+        <Text style={styles.btnText}>AI Assistant</Text>
+      </TouchableOpacity>
     </View>
   );
 }

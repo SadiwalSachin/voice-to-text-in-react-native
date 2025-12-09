@@ -1,246 +1,173 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
-  Platform,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  PermissionsAndroid,
+  FlatList,
   Alert,
 } from 'react-native';
-
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Voice from '@react-native-voice/voice';
-import BluetoothSerial from "react-native-bluetooth-serial-next"; // <-- make sure installed
+import BluetoothSerial from 'react-native-bluetooth-serial-next';
 import { BluetoothContext } from '../context/BluetoothContext';
 
-const SendVoiceDataScreen = () => {
+export default function SendPlainTextScreen() {
   const {connectedDevice} = useContext(BluetoothContext);
-  const [isListening, setIsListening] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [showOutput, setShowOutput] = useState(false);
-
-  // For sending messages
   const [textMessage, setTextMessage] = useState('');
+  const [messages, setMessages] = useState([]);
 
-  // ⭐ Your SEND function integrated
+  const flatListRef = useRef(null);
+
+  // Auto scroll
+  useEffect(() => {
+    if (messages.length > 0) {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
+  // Connect to HC-05 automatically on screen load
+
+  // Send text message
   const handleSend = async () => {
+    if (!connectedDevice) {
+      Alert.alert('Connect to HC-05 first');
+      return;
+    }
+    if (!textMessage.trim()) return;
+
     try {
-      if (!connectedDevice) {
-        Alert.alert('No device connected');
-        return;
-      }
-
-      if (!textMessage.trim()) return;
-
       await BluetoothSerial.write(textMessage + '\n');
 
-      console.log("Message Sent:", textMessage);
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now().toString(), type: 'sent', text: textMessage },
+      ]);
 
       setTextMessage('');
     } catch (err) {
-      console.log("Send error:", err);
+      console.log('Send error:', err);
     }
   };
 
-  useEffect(() => {
-    Voice.onSpeechStart = onSpeechStart;
-    Voice.onSpeechEnd = onSpeechEnd;
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = e => console.log('Speech error:', e);
-
-    const androidPermissionChecking = async () => {
-      if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          {
-            title: 'Microphone Permission',
-            message: 'This app needs access to your microphone to recognize speech',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Microphone permission granted');
-        } else {
-          console.log('Microphone permission denied');
-        }
-
-        const getService = await Voice.getSpeechRecognitionServices();
-        console.log('Audio Services:', getService);
-      }
-    };
-
-    androidPermissionChecking();
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, []);
-
-  const onSpeechStart = () => {
-    console.log('Recording started');
-    setIsListening(true);
-    setShowOutput(false);
-  };
-
-  const onSpeechEnd = () => {
-    console.log('Recording ended');
-    setIsListening(false);
-  };
-
-  const onSpeechResults = event => {
-    const text = event.value[0];
-    console.log('Speech Results:', text);
-    setSearchText(text);
-    setTextMessage(text);       // ⭐ Set this for sending
-    setShowOutput(true);
-  };
-
-  const startListening = async () => {
-    try {
-      await Voice.start('en-US');
-      setIsListening(true);
-    } catch (error) {
-      console.log('Start Error:', error);
-    }
-  };
-
-  const stopListening = async () => {
-    try {
-      await Voice.stop();
-      setIsListening(false);
-    } catch (error) {
-      console.log('Stop Error:', error);
-    }
-  };
-
-  return (
-    <View style={styles.mainContainer}>
-      <Text style={styles.title}>Voice Search</Text>
-
-      {/* Recording Card */}
-      <View style={styles.recordCard}>
-        <Text style={styles.statusText}>
-          {isListening ? 'Listening...' : 'Tap to start'}
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.micBtn, isListening && styles.micBtnActive]}
-          onPress={isListening ? stopListening : startListening}>
-          <Icon
-            name={isListening ? 'stop-circle' : 'microphone'}
-            size={28}
-            color="#fff"
-          />
-          <Text style={styles.micBtnText}>
-            {isListening ? 'Stop Recording' : 'Start Recording'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Output Text Box */}
-      {showOutput && searchText !== '' && (
-        <View style={styles.outputBox}>
-          <Text style={styles.outputLabel}>Recognized Text:</Text>
-
-          <TextInput
-            style={styles.outputInput}
-            value={searchText}
-            onChangeText={(t) => {
-              setSearchText(t);
-              setTextMessage(t);
-            }}
-            multiline={true}
-          />
-        </View>
-      )}
-
-      {/* SEND BUTTON */}
-      {textMessage.trim() !== '' && (
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Text style={styles.sendText}>Send</Text>
-        </TouchableOpacity>
-      )}
+  const renderMessage = ({ item }) => (
+    <View
+      style={[
+        styles.msgBubble,
+        item.type === 'sent' ? styles.sentBubble : styles.receivedBubble,
+      ]}
+    >
+      <Text
+        style={[
+          styles.msgText,
+          item.type === 'sent' ? styles.sentText : styles.receivedText,
+        ]}
+      >
+        {item.text}
+      </Text>
     </View>
   );
-};
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.subTitle}>
+        {connectedDevice ? `Connected: ${connectedDevice.name}` : 'Not Connected'}
+      </Text>
+
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        keyExtractor={item => item.id}
+        renderItem={renderMessage}
+        contentContainerStyle={styles.chatContainer}
+      />
+
+      <TextInput
+        value={textMessage}
+        onChangeText={setTextMessage}
+        placeholder="Type your message..."
+        placeholderTextColor="#6E7E90"
+        style={styles.textInput}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSend}>
+        <Text style={styles.btnText}>Send</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ======================================================
+//                     STYLES
+// ======================================================
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     flex: 1,
     backgroundColor: '#F4F8FF',
-    padding: 20,
+    padding: 16,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#0A84FF',
+
+  subTitle: {
     textAlign: 'center',
-    marginBottom: 22,
-  },
-  recordCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 30,
-    alignItems: 'center',
-    elevation: 5,
-  },
-  statusText: {
-    fontSize: 16,
     color: '#444',
-    marginBottom: 20,
+    marginBottom: 14,
   },
-  micBtn: {
+
+  chatContainer: {
+    flexGrow: 1,
+    paddingVertical: 10,
+  },
+
+  msgBubble: {
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 6,
+    maxWidth: '80%',
+  },
+
+  sentBubble: {
+    alignSelf: 'flex-end',
     backgroundColor: '#0A84FF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 14,
   },
-  micBtnActive: {
-    backgroundColor: '#FF3B30',
+
+  receivedBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#C8D6EE',
   },
-  micBtnText: {
+
+  sentText: {
     color: '#fff',
-    marginLeft: 12,
-    fontWeight: '600',
+  },
+
+  receivedText: {
+    color: '#000',
+  },
+
+  textInput: {
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#C8D6EE',
     fontSize: 16,
+    marginTop: 10,
+    color:"black"
   },
-  outputBox: {
-    marginTop: 28,
-    backgroundColor: '#fff',
-    padding: 18,
-    borderRadius: 14,
-    elevation: 3,
-  },
-  outputLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#0A84FF',
-    marginBottom: 8,
-  },
-  outputInput: {
-    fontSize: 16,
-    color: '#333',
-    minHeight: 60,
-  },
-  sendBtn: {
-    marginTop: 30,
+
+  button: {
+    marginTop: 10,
     backgroundColor: '#0A84FF',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  sendText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
+
+  btnText: {
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: '600',
   },
 });
-
-export default SendVoiceDataScreen;
