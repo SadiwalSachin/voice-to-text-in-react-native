@@ -5,6 +5,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  console.log("on home screen");
+  
 
   return (
     <View style={styles.container}>
