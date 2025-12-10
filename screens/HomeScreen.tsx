@@ -1,68 +1,80 @@
-import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from "@react-navigation/native";
+import React, { useContext } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { BluetoothContext } from "../context/BluetoothContext";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  console.log("on home screen");
-  
+
+  const {connectedDevice} = useContext(BluetoothContext);
+
+  // if(!connectedDevice) {
+  //   navigation.navigate("Settings");
+  // }
 
   return (
     <View style={styles.container}>
-      {/* Main Title */}
-      <Text style={styles.mainTitle}>NETRAA</Text>
+      {/* HEADER */}
+      <Text style={styles.title}>Let’s become more</Text>
+      <Text style={styles.highlight}>Productive</Text>
 
-      {/* Mission Text */}
-      <View style={styles.missionBox}>
-        <MaterialIcons name="visibility" size={22} color="#0A84FF" />
-        <Text style={styles.missionText}>
-          Empowering blind & deaf individuals with accessible learning tools.
-        </Text>
+      {/* AI SECTION (FOCUSED AREA) */}
+      <View style={styles.aiBox}>
+        <View style={styles.aiInner}>
+          <MaterialIcons name="smart-toy" size={24} color="#F9A938" />
+          <Text style={styles.aiText}>AI Assistant Ready</Text>
+          <Text style={styles.aiSub}>Your tasks made easier</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("AIVoiceAssistantScreen")}
+          style={styles.aiButton}
+        >
+          <Text style={styles.aiButtonText}>Open AI Assistant</Text>
+        </TouchableOpacity>
       </View>
 
-      <Text style={styles.subtitle}>Choose an option to continue</Text>
+      {/* MAIN OPTIONS SECTION */}
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-      {/* Buttons */}
-      <TouchableOpacity
-        onPress={() => navigation.navigate('PlainText')}
-        style={styles.button}
-      >
-        <MaterialIcons name="text-fields" size={22} color="#fff" />
-        <Text style={styles.btnText}>Send Plain Text</Text>
-      </TouchableOpacity>
+      <View style={styles.optionsContainer}>
+        <TouchableOpacity
+          style={styles.optionCard}
+          onPress={() => navigation.navigate("PlainText")}
+        >
+          <MaterialIcons name="text-fields" size={28} color="#0C3444" />
+          <Text style={styles.cardTitle}>Send Text</Text>
+          <Text style={styles.cardSub}>Plain text messages</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('PDFData')}
-        style={styles.button}
-      >
-        <MaterialIcons name="picture-as-pdf" size={22} color="#fff" />
-        <Text style={styles.btnText}>Send PDF</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.optionCard}
+          onPress={() => navigation.navigate("PDFData")}
+        >
+          <MaterialIcons name="picture-as-pdf" size={28} color="#0C3444" />
+          <Text style={styles.cardTitle}>Send PDF</Text>
+          <Text style={styles.cardSub}>Upload and extract</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('VoiceData')}
-        style={styles.button}
-      >
-        <MaterialIcons name="keyboard-voice" size={22} color="#fff" />
-        <Text style={styles.btnText}>Send Voice Data</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.optionCard}
+          onPress={() => navigation.navigate("VoiceData")}
+        >
+          <MaterialIcons name="keyboard-voice" size={28} color="#0C3444" />
+          <Text style={styles.cardTitle}>Voice Input</Text>
+          <Text style={styles.cardSub}>Speech to braille</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('TeachersModule')}
-        style={styles.button}
-      >
-        <MaterialIcons name="school" size={22} color="#fff" />
-        <Text style={styles.btnText}>Teacher’s Module</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate('AIVoiceAssistantScreen')}
-        style={styles.button}
-      >
-        <MaterialIcons name="school" size={22} color="#fff" />
-        <Text style={styles.btnText}>AI Assistant</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.optionCard}
+          onPress={() => navigation.navigate("TeachersModule")}
+        >
+          <MaterialIcons name="school" size={28} color="#0C3444" />
+          <Text style={styles.cardTitle}>Teacher Tools</Text>
+          <Text style={styles.cardSub}>Assignments & notes</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -70,57 +82,95 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F8FF',
-    alignItems: 'center',
-    paddingTop: 40,
+    backgroundColor: "#F6F7F9",
+    paddingHorizontal: 22,
+    paddingTop: 45,
   },
 
-  mainTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#0A84FF',
-    marginBottom: 10,
+  title: {
+    fontSize: 26,
+    color: "#0C3444",
+    fontWeight: "700",
   },
 
-  missionBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '85%',
-    padding: 10,
-    backgroundColor: '#EAF3FF',
-    borderRadius: 10,
+  highlight: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#F9A938",
     marginBottom: 20,
   },
 
-  missionText: {
-    fontSize: 14,
-    color: '#444',
-    marginLeft: 8,
-    flex: 1,
-  },
-
-  subtitle: {
-    fontSize: 14,
-    color: '#444',
+  /* AI BOX */
+  aiBox: {
+    backgroundColor: "#0C3444",
+    padding: 20,
+    borderRadius: 20,
     marginBottom: 30,
   },
 
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '85%',
-    paddingVertical: 14,
-    backgroundColor: '#0A84FF',
-    marginBottom: 15,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    elevation: 4,
+  aiInner: {
+    marginBottom: 18,
   },
 
-  btnText: {
+  aiText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 10,
+  },
+
+  aiSub: {
+    color: "#DDE7EC",
+    fontSize: 14,
+    marginTop: 4,
+  },
+
+  aiButton: {
+    backgroundColor: "#F9A938",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+
+  aiButtonText: {
+    color: "#0C3444",
+    fontWeight: "700",
     fontSize: 16,
-    color: '#fff',
-    fontWeight: '600',
-    marginLeft: 10,
+  },
+
+  /* Quick Actions */
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#0C3444",
+    marginBottom: 12,
+  },
+
+  optionsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+
+  optionCard: {
+    width: "47%",
+    backgroundColor: "#FFF",
+    padding: 15,
+    marginBottom: 20,
+    borderRadius: 18,
+    elevation: 3,
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0C3444",
+    marginTop: 10,
+  },
+
+  cardSub: {
+    fontSize: 12,
+    color: "#6A7A87",
+    marginTop: 3,
   },
 });

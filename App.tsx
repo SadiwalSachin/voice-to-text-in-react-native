@@ -1,4 +1,3 @@
-
 // import React from "react";
 // import { View, Text, Button } from "react-native";
 // import { pick } from "react-native-document-picker";
@@ -78,6 +77,7 @@ import SendVoiceDataScreen from './screens/SendVoiceData';
 import TeachersModuleScreen from './screens/TeachersModulesScreen';
 import SendPDFScreen from './screens/SendPDFScreen';
 import AIVoiceAssistantScreen from './screens/AiVoiceAssistantScreen';
+import LandingScreen from './screens/LandingPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -85,7 +85,7 @@ const App = () => {
   return (
     <BluetoothProvider>
       <NavigationContainer>
-        <Stack.Navigator
+        {/* <Stack.Navigator
           screenOptions={({navigation}) => ({
             headerStyle: {backgroundColor: '#0A84FF'},
             headerTintColor: '#fff',
@@ -139,6 +139,29 @@ const App = () => {
           component={AIVoiceAssistantScreen}
           options={{ title: "AI Assistant" }}
         />
+        </Stack.Navigator> */}
+
+        <Stack.Navigator screenOptions={{headerShown: false}}>
+          <Stack.Screen name="Landing" component={LandingScreen} />
+
+          <Stack.Screen name="Home" component={HomeScreen} />
+
+          <Stack.Screen
+            name="Settings"
+            component={BluetoothScreen}
+          />
+
+          <Stack.Screen name="PlainText" component={SendPlainTextScreen} />
+          <Stack.Screen name="VoiceData" component={SendVoiceDataScreen} />
+          <Stack.Screen name="PDFData" component={SendPDFScreen} />
+          <Stack.Screen
+            name="TeachersModule"
+            component={TeachersModuleScreen}
+          />
+          <Stack.Screen
+            name="AIVoiceAssistantScreen"
+            component={AIVoiceAssistantScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </BluetoothProvider>

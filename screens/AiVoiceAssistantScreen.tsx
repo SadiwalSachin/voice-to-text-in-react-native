@@ -17,9 +17,11 @@ import axios from "axios";
 
 import BluetoothSerial from "react-native-bluetooth-serial-next";
 import { BluetoothContext } from "../context/BluetoothContext";
+import { useNavigation } from "@react-navigation/native";
 
 const AIVoiceAssistantScreen = () => {
   const { connectedDevice } = useContext(BluetoothContext);
+  const navigation = useNavigation()
 
   const [isListening, setIsListening] = useState(false);
   const [recordedText, setRecordedText] = useState("");
@@ -114,69 +116,78 @@ const AIVoiceAssistantScreen = () => {
     }
   };
 
+  if(!connectedDevice) {
+    navigation.navigate("Settings")
+  }
+
   return (
     <View style={styles.container}>
 
-      <Text style={styles.title}>AI Voice Assistant</Text>
+      <Text style={styles.headerTitle}>AI Voice Assistant</Text>
 
-      {/* Voice Recording Card */}
-      <View style={styles.card}>
-        <Text style={styles.statusText}>
+      {/* Record Box */}
+      <View style={styles.recordCard}>
+        <Text style={styles.recordStatus}>
           {isListening ? "Listening..." : "Tap the mic to record"}
         </Text>
 
         <TouchableOpacity
-          style={[styles.micBtn, isListening && styles.activeMic]}
+          style={[styles.micButton, isListening && styles.activeMic]}
           onPress={isListening ? stopListening : startListening}
           disabled={loading}
         >
           <Icon
             name={isListening ? "stop-circle" : "microphone"}
             size={30}
-            color="#fff"
+            color="#FFF"
           />
         </TouchableOpacity>
       </View>
 
-      {/* Text Box */}
-      <TextInput
-        style={styles.textBox}
-        placeholder="Your recorded text will appear here..."
-        value={recordedText}
-        placeholderTextColor="gray"
-        multiline
-        aria-disabled={loading}
-        onChangeText={(t) => setRecordedText(t)}
-      />
+      {/* Recorded Text */}
+      <View style={styles.inputCard}>
+        <Text style={styles.label}>Recorded Text</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Your speech will appear here..."
+          placeholderTextColor="#7A8B99"
+          value={recordedText}
+          onChangeText={setRecordedText}
+          multiline
+        />
+      </View>
 
-      {/* Ask AI Button */}
+      {/* Ask AI */}
       <TouchableOpacity
-        style={[styles.askBtn, loading && styles.askBtnDisabled]}
+        style={[styles.askButton, loading && styles.askButtonDisabled]}
         onPress={askAI}
         disabled={loading}
       >
-        <Text style={styles.askText}>
-          {loading ? "Asking..." : "Ask AI"}
+        <Text style={styles.askButtonText}>
+          {loading ? "Thinking..." : "Ask AI"}
         </Text>
       </TouchableOpacity>
 
-      {/* Loader */}
       {loading && (
-        <ActivityIndicator size="large" color="#0A84FF" style={{ marginTop: 20 }} />
+        <ActivityIndicator
+          size="large"
+          color="#F9A938"
+          style={{ marginTop: 18 }}
+        />
       )}
 
       {/* AI Output */}
       {aiResponse !== "" && (
-        <View style={styles.outputBox}>
-          <Text style={styles.outputTitle}>AI Response:</Text>
+        <View style={styles.outputCard}>
+          <Text style={styles.outputTitle}>AI Response</Text>
           <Text style={styles.outputText}>{aiResponse}</Text>
         </View>
       )}
 
-      {/* Send to Braille Button */}
+      {/* Send to Braille */}
       {aiResponse !== "" && (
-        <TouchableOpacity style={styles.sendBtn} onPress={sendToBraille}>
-          <Text style={styles.sendBtnText}>Send to Braille</Text>
+        <TouchableOpacity style={styles.sendButton} onPress={sendToBraille}>
+          <Text style={styles.sendButtonText}>Send to Braille</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -185,90 +196,117 @@ const AIVoiceAssistantScreen = () => {
 
 export default AIVoiceAssistantScreen;
 
-// ------------------ STYLES -------------------- //
+// ---------------- STYLES ---------------- //
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F8FF",
+    backgroundColor: "#F6F7F9",
     padding: 20,
   },
-  title: {
+
+  headerTitle: {
     fontSize: 26,
-    fontWeight: "bold",
+    fontWeight: "900",
+    color: "#0C3444",
     textAlign: "center",
-    color: "#0A84FF",
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: "#fff",
+
+  recordCard: {
+    backgroundColor: "#FFFFFF",
     padding: 25,
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: "center",
-    elevation: 4,
+    elevation: 3,
   },
-  statusText: {
+
+  recordStatus: {
     fontSize: 16,
+    color: "#0C3444",
     marginBottom: 12,
   },
-  micBtn: {
-    padding: 16,
-    borderRadius: 50,
-    backgroundColor: "#0A84FF",
-  },
-  activeMic: {
-    backgroundColor: "#FF3B30",
-  },
-  textBox: {
-    marginTop: 20,
-    backgroundColor: "#fff",
-    color:"gray",
+
+  micButton: {
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 50,
+    backgroundColor: "#0C3444",
+  },
+
+  activeMic: {
+    backgroundColor: "#F44336",
+  },
+
+  inputCard: {
+    marginTop: 20,
+    backgroundColor: "#FFFFFF",
+    padding: 18,
+    borderRadius: 18,
+    elevation: 2,
+  },
+
+  label: {
+    color: "#0C3444",
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: "700",
+  },
+
+  textInput: {
     minHeight: 90,
     fontSize: 16,
+    color: "#0C3444",
   },
-  askBtn: {
+
+  askButton: {
     marginTop: 20,
-    backgroundColor: "#0A84FF",
-    padding: 14,
-    borderRadius: 12,
+    backgroundColor: "#F9A938",
+    padding: 16,
+    borderRadius: 16,
     alignItems: "center",
   },
-  askBtnDisabled: {
-    backgroundColor: "#8BB8FF", // faded blue when loading
+
+  askButtonDisabled: {
+    backgroundColor: "#F5C979",
   },
-  askText: {
-    color: "#fff",
+
+  askButtonText: {
+    color: "#0C3444",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "900",
   },
-  outputBox: {
+
+  outputCard: {
     marginTop: 25,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 18,
+    elevation: 2,
   },
+
   outputTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#0A84FF",
+    fontWeight: "900",
+    color: "#0C3444",
+    marginBottom: 10,
   },
+
   outputText: {
     fontSize: 16,
-    color: "#333",
+    color: "#314450",
   },
-  sendBtn: {
+
+  sendButton: {
     marginTop: 25,
-    backgroundColor: "green",
-    padding: 14,
+    backgroundColor: "#0C3444",
+    padding: 16,
+    borderRadius: 16,
     alignItems: "center",
-    borderRadius: 12,
   },
-  sendBtnText: {
-    color: "#fff",
+
+  sendButtonText: {
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "900",
   },
 });
